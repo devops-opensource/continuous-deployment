@@ -1,0 +1,5 @@
+# Custom config for AWS BeanStalk platform
+
+deploy:
+
+  artifact: target/demo-1.0.jar
