@@ -1,0 +1,42 @@
+# Base docker image to run pipeline
+image: docker:latest
+services:
+  - docker:dind
+  
+# path to cache Maven dependencies
+cache:
+  paths:
+    - .m2/
+
+# Stages in pipeline
+stages:
+  - build
+  - deploy
+
+# Build maven step
+maven-build:
+  # Use maven docker image
+  image: maven
+  # Join to build stage
+  stage: build
+  # Command to execute in docker image
+  script: "mvn package -Dmaven.repo.local=.m2"
+  artifacts:
+    paths:
+      - target/*.jar
+
+# Deploy AWS step
+aws-deploy:
+  # Use aws docker with eb-cli
+  image: chriscamicas/awscli-awsebcli
+  # Join to deploy stage
+  stage: deploy
+  # Commands to execute to deploy application to AWS
+  script:
+  - echo "$AWS_ACCESS_KEY_ID"
+  - eb init continuous-deployment-demo -p "64bit Amazon Linux 2017.09 v2.6.4 running Java 8" --region "ca-central-1"
+  - eb create gitlab-env --single || true
+  - eb setenv SERVER_PORT=5000
+  - eb deploy gitlab-env
+  - eb status
+
