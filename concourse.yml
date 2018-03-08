@@ -1,0 +1,90 @@
+# Declare Concourse resources to use as IN/OUT 
+resources:  
+  # 'code' resource is a GIT resource used to checkout source-code
+  - name: code  
+    type: git  
+    source:  
+      uri: https://gitlab.gologic.ca/gologic-technos/continuous-deployment.git
+      branch: master
+  # 'storage' resource is S3 resource to store JAR between build and deploy since Concourse do not provide any internal storage tool  
+  - name: storage
+    type: s3
+    source:
+      # Name of the bucket in S3 account
+      bucket: gologic-concourse-demo-bucket
+      region_name: ca-central-1
+      # filename of the application to read/write in S3 (check S3 resource documentation for parameters) 
+      versioned_file: demo.jar
+      # AWS Credentials are passed in command line on set-pipeline. Concourse can use an external vault system too to store credentials
+      access_key_id: ((AWS_ACCESS_KEY_ID))
+      secret_access_key: ((AWS_SECRET_ACCESS_KEY))
+jobs:  
+  # First job: Package Application as a JAR and Upload to S3 Bucket for storage
+  - name: Build  
+    plan:  
+    # Check for new commit (trigger=true), 'code' refers to GIT resource
+    - get: code  
+      trigger: true  
+    # Package and copy application to output 'build' folder
+    - task: compile  
+      config:
+        # Use a docker image with Maven to build application
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: maven
+        # 'code' folder contains checkout code
+        inputs:
+          - name: code
+        # 'build' folder is used to store file for next PUT step after RUN step
+        outputs: 
+          - name: build
+        caches:
+          - path: code/.m2
+        # RUN step allows inline command and FILE step allow to use external task file
+        run:
+          path: sh
+          args:
+          - -c
+          - |
+            mvn -f code/pom.xml package -Dmaven.repo.local=code/.m2
+            cp code/target/demo-1.0.jar build/demo.jar
+    # Upload build/demo.jar to S3 bucket, 'storage' refers to S3 Resource
+    - put: storage
+      params:
+        file: build/demo.jar
+        name: demo.jar
+  # Second job: Retrieve application from S3 Bucket and Deploy to AWS Beanstalk
+  - name: Deploy
+    plan:  
+    # Download application from S3 bucket, 'storage' refers to S3 Resource
+    - get: storage
+      # Only if build job has passed
+      passed:
+        - Build
+      trigger: true
+    # Deploy to AWS using credentials 
+    - task: deploy-aws  
+      params:
+        AWS_ACCESS_KEY_ID: ((AWS_ACCESS_KEY_ID))
+        AWS_SECRET_ACCESS_KEY: ((AWS_SECRET_ACCESS_KEY))
+      config:
+        # Use a docker image with AWS eb-cli to init, create environment and deploy application 
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: chriscamicas/awscli-awsebcli
+        inputs:
+          - name: storage
+        # Run a set of AWS eb commands to deploy application to AWS (Check for AWS Beanstalk logs to check for creation and deployment)
+        run:
+          path: sh
+          args:
+          - -c
+          - |
+            eb init continuous-deployment-demo -p "64bit Amazon Linux 2017.09 v2.6.4 running Java 8" --region "ca-central-1"
+            eb create concourse-env --single
+            eb deploy concourse-env
+            eb status
