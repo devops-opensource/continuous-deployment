@@ -1,6 +1,7 @@
 version: 2
 jobs:
-  build:
+  # Job to Build Maven application
+  maven-build:
     
     # specify the version you desire here
     docker:
@@ -26,11 +27,51 @@ jobs:
           paths:
             - ~/.m2
           key: demo-{{ checksum "pom.xml" }}
-      
+          
+      # Run maven commands
       - run: mvn package
       
+      # Store tests to compare builds      
       - store_test_results:
           path: target/surefire-reports
-      
+      # Store artifacts on CircleCI internal repository
       - store_artifacts:
           path: target/demo-1.0.jar
+          
+      # Persist the specified paths target/demo-1.0.jar) into the workspace for use in aws-deploy job. 
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory. This is a directory on the container which is taken to be the root directory of the workspace.
+          root: ~/repo/target
+          # Must be relative path from root
+          paths:
+            - demo-1.0.jar
+
+  # Job to Deploy spring-boot demo application to AWS BeanStalk
+  aws-deploy:
+    working_directory: ~/app
+    docker:
+      - image: chriscamicas/awscli-awsebcli
+    steps:
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/app/target
+
+      - run:
+          name: Deploying
+          command: |
+            echo "$AWS_ACCESS_KEY_ID"
+            eb init continuous-deployment-demo -p "64bit Amazon Linux 2017.09 v2.6.4 running Java 8" --region "ca-central-1"
+            eb create circleci-env --single || true
+            eb setenv SERVER_PORT=5000
+            eb deploy circleci-env
+            eb status
+          
+workflows:
+  version: 2
+  workflow:
+    jobs:
+      - maven-build
+      - aws-deploy:
+          requires:
+            - maven-build
+            
