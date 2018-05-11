@@ -1,0 +1,36 @@
+version: 2
+jobs:
+  build:
+    
+    # specify the version you desire here
+    docker:
+      - image: maven
+      
+    working_directory: ~/repo
+
+    environment:
+      # Customize the JVM maximum heap limit
+      MAVEN_OPTS: -Xmx3200m
+      
+    steps:
+
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          key: demo-{{ checksum "pom.xml" }}
+      
+      - run: mvn dependency:go-offline
+      
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: demo-{{ checksum "pom.xml" }}
+      
+      - run: mvn package
+      
+      - store_test_results:
+          path: target/surefire-reports
+      
+      - store_artifacts:
+          path: target/demo-1.0.jar
