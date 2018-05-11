@@ -1,4 +1,10 @@
 version: 2
+#
+# Jobs are a collection of Steps. All of the steps in the job are executed in a single unit which consumes a CircleCI container from your plan while it’s running.
+# Job: "maven-build" job test and package demo application with Maven, persist JAR in workspace and store it as Artefacts
+# Job: "aws-deploy" job get binary from attached workspace and deploy to AWS
+# https://circleci.com/docs/2.0/jobs-steps/
+#
 jobs:
   # Job to Build Maven application
   maven-build:
@@ -65,7 +71,11 @@ jobs:
             eb setenv SERVER_PORT=5000
             eb deploy circleci-env
             eb status
-          
+#
+# Workflows: A workflow is a set of rules for defining a collection of jobs and their run order.
+# In this demo, "aws-deploy" jobs is triggered only after the success of "maven-build" jobs
+# see https://circleci.com/docs/2.0/workflows/
+#
 workflows:
   version: 2
   workflow:
