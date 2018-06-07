@@ -1,0 +1,6 @@
+steps:
+  - command: "mvn package"
+    label: ":demo: build"
+    plugins:
+      docker#v1.1.1:
+        image: "maven"
