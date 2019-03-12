@@ -1,0 +1,19 @@
+# Define a template with JAVA
+language: java
+
+# install phase: with maven project packaging a jar is implicit
+
+# cache: Add a cache folder to improve build-speed
+cache:
+  directories:
+  - "$HOME/.cache"
+  
+# deploy phase: use buildin provider to deploy application
+deploy:
+  provider: elasticbeanstalk
+  access_key_id: $AWS_ACCESS_KEY_ID
+  secret_access_key: $AWS_SECRET_ACCESS_KEY
+  region: "ca-central-1"  
+  app: "continuous-deployment-demo"
+  env: "travisci-env"
+  bucket_name: "gologic-concourse-demo-bucket"
