@@ -17,3 +17,7 @@ deploy:
   app: "continuous-deployment-demo"
   env: "travisci-env"
   bucket_name: "gologic-concourse-demo-bucket"
+  on: 
+    branches: 
+      only: 
+        - travisci
