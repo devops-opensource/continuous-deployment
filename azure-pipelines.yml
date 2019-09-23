@@ -1,0 +1,59 @@
+jobs:
+# Execute a Maven build and publish artefact
+- job: Build
+  pool:
+    vmImage: 'ubuntu-16.04'
+  steps:
+  - task: Maven@3
+    displayName: 'Build application'
+    inputs:
+      mavenPomFile: 'pom.xml'
+      goals: 'package'
+      publishJUnitResults: true
+      testResultsFiles: '**/surefire-reports/TEST-*.xml'
+      javaHomeOption: 'JDKVersion'
+      jdkVersionOption: '1.8'
+      mavenVersionOption: 'Default'
+      mavenOptions: '-Xmx3072m'
+      mavenAuthenticateFeed: false
+      effectivePomSkip: false
+      sonarQubeRunAnalysis: false
+  - task: PublishTestResults@2
+    displayName: 'Publish tests results'
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/surefire-reports/TEST-*.xml'
+      mergeTestResults: true
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish application'
+    inputs:
+      pathtoPublish: '$(System.DefaultWorkingDirectory)'
+      artifactName: continuous-deployment-demo
+
+# download the artifact and deploy it only if the build job succeeded
+- job: Deploy
+  pool:
+    vmImage: 'ubuntu-16.04'
+  dependsOn: Build
+  condition: succeeded()
+  container: chriscamicas/awscli-awsebcli:latest
+  steps:
+  - checkout: none #skip checking out the default repository resource
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Download Build Artifacts'
+    inputs:
+      artifactName: continuous-deployment-demo
+      downloadPath: $(System.DefaultWorkingDirectory)
+  - script: |
+      printenv
+      ls -ltra
+      echo "Check AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)"
+      eb init continuous-deployment-demo -p "64bit Amazon Linux 2017.09 v2.6.4 running Java 8" --region "ca-central-1"
+      eb create azuredevops-env --single || true;
+      eb use azuredevops-env
+      eb setenv SERVER_PORT=5000
+      eb deploy
+      eb status
+      eb health
+    workingDirectory: $(System.DefaultWorkingDirectory)/continuous-deployment-demo
+    displayName: "Provision environment and deploy application"
