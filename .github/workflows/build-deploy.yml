@@ -38,6 +38,7 @@ jobs:
 
   deploy:
     name: Deploy to AWS
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - name: Download a Build Artifact
