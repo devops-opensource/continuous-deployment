@@ -77,15 +77,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         with:
-          command: 'create github-env --single'
-          
-      - name: AWS - Define application SERVER_PORT
-        uses: hmanzur/actions-aws-eb@v1.0.0
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        with:
-          command: 'setenv SERVER_PORT=5000'
+          command: 'create github-env --single --envvars SERVER_PORT=5000'
       
       - name: AWS - Deploy application to targate
         uses: hmanzur/actions-aws-eb@v1.0.0
