@@ -68,9 +68,8 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_PLATFORM: "64bit Amazon Linux 2017.09 v2.6.4 running Java 8"
         with:
-          command: 'init continuous-deployment-demo --region ca-central-1'
+          command: 'init continuous-deployment-demo --region ca-central-1 --platform Java'
             
       - name: AWS - Create app
         uses: hmanzur/actions-aws-eb@v1.0.0
