@@ -54,7 +54,7 @@ jobs:
           # Artifact name
           name: artifact-jar
           # Destination path
-          path: target/demo-1.0.jar 
+          path: target
       
       - name: Download Beanstalk config
         uses: actions/download-artifact@v2
