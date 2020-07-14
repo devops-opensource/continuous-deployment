@@ -64,7 +64,10 @@ jobs:
           path: .elasticbeanstalk/config.yml
 
       - name: Display EB config files
-        run: cat .elasticbeanstalk/config.yml
+        run: ls -ltra .elasticbeanstalk/config.yml
+
+      - name: Find EB config files
+        run: find .elasticbeanstalk
       
       - name: AWS - init environment
         uses: hmanzur/actions-aws-eb@v1.0.0
