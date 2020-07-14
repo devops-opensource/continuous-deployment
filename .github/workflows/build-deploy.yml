@@ -41,7 +41,7 @@ jobs:
         with:
           name: beanstalk-config
           # A file, directory or wildcard pattern that describes what to upload
-          path: .elasticbeanstalk/config.yml
+          path: .elasticbeanstalk
 
   deploy:
     name: Deploy to AWS
