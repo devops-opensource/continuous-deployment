@@ -54,13 +54,8 @@ jobs:
       - name: Create or Use Existing Environment
         run: |
           eb init continuous-deployment-application -p "64bit Amazon Linux 2023 v4.2.4 running Corretto 8" --region ${{ secrets.AWS_REGION }}
-          if eb list | grep -q "Github-env-demo-env"; then
-            echo "Environment already exists, using existing environment."
-            eb use Github-env-demo-env
-          else
-            echo "Creating new environment."
-            eb create Github-env-demo-env --single || true
-          fi
+          eb create Github-env-demo-env --single || true
+          eb use Github-env-demo-env
 
       - name: Deploy to Elastic Beanstalk
         env:
