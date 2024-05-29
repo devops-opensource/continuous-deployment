@@ -59,7 +59,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          eb init -p "Tomcat 8.5 with Java 8 running on 64bit Amazon Linux" continuous-deployment-demo --region ${{ secrets.AWS_REGION }}
+          eb init -p "64bit Amazon Linux 2023 v4.2.4 running Corretto 11" continuous-deployment-demo --region ${{ secrets.AWS_REGION }}
           eb create github-env --single || true
           eb use github-env
           eb setenv SERVER_PORT=5000
