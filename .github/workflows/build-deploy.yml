@@ -29,7 +29,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: deployment-package
+          name: continuous-deployment-demo
           path: deploy.zip
 
   deploy:
@@ -41,7 +41,7 @@ jobs:
       - name: Download Build Artifact
         uses: actions/download-artifact@v3
         with:
-          name: deployment-package
+          name: continuous-deployment-demo
           path: deploy.zip
 
       - name: Setup AWS CLI
