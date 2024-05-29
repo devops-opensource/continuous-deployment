@@ -23,14 +23,11 @@ jobs:
       - name: Build with Maven
         run: mvn package --file pom.xml -Dmaven.repo.local=.m2
 
-      - name: Zip the deployment package
-        run: zip -r deploy.zip target/demo-1.0.jar .elasticbeanstalk
-
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: continuous-deployment-demo
-          path: deploy.zip
+          path: target/demo-1.0.jar
 
   deploy:
     name: Deploy to AWS Elastic Beanstalk
@@ -42,7 +39,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: continuous-deployment-demo
-          path: deploy.zip
+          path: target/demo-1.0.jar
 
       - name: Setup AWS CLI
         uses: aws-actions/configure-aws-credentials@v1
