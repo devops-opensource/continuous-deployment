@@ -63,7 +63,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           eb setenv SERVER_PORT=5000
-          eb deploy --staged
+          eb deploy Github-env-demo-env
           eb status
           eb health
 
