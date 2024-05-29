@@ -53,7 +53,7 @@ jobs:
 
       - name: Create or Use Existing Environment
         run: |
-          eb init continuous-deployment-application -p "64bit Amazon Linux 2018.03 v2.12.10 running Java 8" --region ${{ secrets.AWS_REGION }}
+          eb init continuous-deployment-application -p "64bit Amazon Linux 2023 v4.2.4 running Corretto 8" --region ${{ secrets.AWS_REGION }}
           if eb list | grep -q "Github-env-demo-env"; then
             echo "Environment already exists, using existing environment."
             eb use Github-env-demo-env
