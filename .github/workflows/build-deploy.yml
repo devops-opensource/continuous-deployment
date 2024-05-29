@@ -12,35 +12,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache local Maven repository
-        uses: actions/cache@v2.0.0
+        uses: actions/cache@v3
         with:
-          # A list of files, directories, and wildcard patterns to cache and restore
-          path:  ~/.m2/repository
-          # An explicit key for restoring and saving the cache
+          path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          # An ordered list of keys to use for restoring the cache if no cache hit occurred for key
           restore-keys: |
             ${{ runner.os }}-maven-
             
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - name: Set up JDK 1.8
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
-          java-version: 1.8
+          distribution: 'temurin'
+          java-version: '8'
+
       - name: Build with Maven
         run: mvn package --file pom.xml -Dmaven.repo.local=.m2
+
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: artifact-jar
-          # A file, directory or wildcard pattern that describes what to upload
           path: target/demo-1.0.jar
     
       - name: Upload Beanstalk config
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: beanstalk-config
-          # A file, directory or wildcard pattern that describes what to upload
           path: .elasticbeanstalk
 
   deploy:
@@ -48,22 +48,19 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
-      - name: Download a Build Artifact
-        uses: actions/download-artifact@v2
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v3
         with:
-          # Artifact name
           name: artifact-jar
-          # Destination path
           path: target
       
       - name: Download Beanstalk config
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: beanstalk-config
-          # A file, directory or wildcard pattern that describes what to upload
           path: .elasticbeanstalk
       
-      - name: AWS - init environment
+      - name: AWS - Init environment
         uses: hmanzur/actions-aws-eb@v1.0.0
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -79,7 +76,7 @@ jobs:
         with:
           command: 'create github-env --single --envvars SERVER_PORT=5000'
       
-      - name: AWS - Deploy application to targate
+      - name: AWS - Deploy application to target
         uses: hmanzur/actions-aws-eb@v1.0.0
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
