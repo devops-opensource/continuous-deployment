@@ -51,18 +51,27 @@ jobs:
       - name: Install Elastic Beanstalk CLI
         run: pip install awsebcli
 
+      - name: Create or Use Existing Environment
+        run: |
+          if eb list | grep -q "Github-env-demo-env"; then
+            echo "Environment already exists, using existing environment."
+            eb use Github-env-demo-env
+          else
+            echo "Creating new environment."
+            eb create Github-env-demo-env --single || true
+          fi
+
       - name: Deploy to Elastic Beanstalk
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          eb init -p "64bit Amazon Linux 2023 v4.2.4 running Corretto 8" continuous-deployment-demo --region ${{ secrets.AWS_REGION }}
-          eb create Github-env-demo-env --single || true
-          eb use Github-env-demo-env
           eb setenv SERVER_PORT=5000
-          eb deploy
+          eb deploy --staged
           eb status
           eb health
+
+        
       - name: Fetch Logs on Failure
         if: failure()
         run: |
