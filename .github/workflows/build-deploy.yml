@@ -11,14 +11,6 @@ jobs:
     name: Build package
     runs-on: ubuntu-latest
     steps:
-      - name: Cache local Maven repository
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-            
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -31,55 +23,46 @@ jobs:
       - name: Build with Maven
         run: mvn package --file pom.xml -Dmaven.repo.local=.m2
 
+      - name: Zip the deployment package
+        run: zip -r deploy.zip target/demo-1.0.jar .elasticbeanstalk
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: artifact-jar
-          path: target/demo-1.0.jar
-    
-      - name: Upload Beanstalk config
-        uses: actions/upload-artifact@v3
-        with:
-          name: beanstalk-config
-          path: .elasticbeanstalk
+          name: deployment-package
+          path: deploy.zip
 
   deploy:
-    name: Deploy to AWS
-    needs: [build]
+    name: Deploy to AWS Elastic Beanstalk
+    needs: build
     runs-on: ubuntu-latest
+    if: success()
     steps:
       - name: Download Build Artifact
         uses: actions/download-artifact@v3
         with:
-          name: artifact-jar
-          path: target
-      
-      - name: Download Beanstalk config
-        uses: actions/download-artifact@v3
+          name: deployment-package
+          path: deploy.zip
+
+      - name: Setup AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          name: beanstalk-config
-          path: .elasticbeanstalk
-      
-      - name: AWS - Init environment
-        uses: hmanzur/actions-aws-eb@v1.0.0
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install Elastic Beanstalk CLI
+        run: pip install awsebcli
+
+      - name: Deploy to Elastic Beanstalk
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        with:
-          command: 'init continuous-deployment-demo --region ca-central-1 --platform Java'
-            
-      - name: AWS - Create app
-        uses: hmanzur/actions-aws-eb@v1.0.0
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        with:
-          command: 'create github-env --single --envvars SERVER_PORT=5000'
-      
-      - name: AWS - Deploy application to target
-        uses: hmanzur/actions-aws-eb@v1.0.0
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        with:
-          command: 'deploy github-env'
+        run: |
+          eb init -p "64bit Amazon Linux 2 v3.2.3 running Corretto 11" continuous-deployment-demo --region ${{ secrets.AWS_REGION }}
+          eb create github-env --single || true
+          eb use github-env
+          eb setenv SERVER_PORT=5000
+          eb deploy
+          eb status
+          eb health
