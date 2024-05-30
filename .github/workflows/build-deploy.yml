@@ -47,5 +47,5 @@ jobs:
         environment_name: github-env
         version_label: 1.0
         region: ${{ secrets.AWS_REGION }}
-        deployment_package: demo-1.0.jar
+        deployment_package: target/demo-1.0.jar
       
