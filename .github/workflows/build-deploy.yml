@@ -33,6 +33,11 @@ jobs:
     name: Deploy to AWS Elastic Beanstalk
     runs-on: ubuntu-latest
     steps:
+    - name: Download Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: continuous-deployment-demo
+        path: target/demo-1.0.jar
     - name: Deploy to EB
       uses: einaregilsson/beanstalk-deploy@v22
       with:
