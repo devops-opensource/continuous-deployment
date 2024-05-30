@@ -28,7 +28,7 @@ Export ACCESS_ID and SECRET_KEY as environment variables
 
 * Initialize eb-cli:
 
-`eb init continuous-deployment-demo -p "64bit Amazon Linux 2017.09 v2.6.4 running Java 8" --region "ca-central-1"`
+`eb init continuous-deployment-demo -p "corretto-17" --region "ca-central-1"`
 
 * Create (optional) environment:
 

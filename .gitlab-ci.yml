@@ -34,7 +34,7 @@ aws-deploy:
   # Commands to execute to deploy application to AWS
   script:
   - echo "$AWS_ACCESS_KEY_ID"
-  - eb init continuous-deployment-demo -p "64bit Amazon Linux 2017.09 v2.6.4 running Java 8" --region "ca-central-1"
+  - eb init continuous-deployment-demo -p "corretto-17" --region "ca-central-1"
   - eb create gitlab-env --single || true
   - eb setenv SERVER_PORT=5000
   - eb deploy gitlab-env

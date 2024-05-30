@@ -48,7 +48,7 @@ jobs:
       printenv
       ls -ltra
       echo "Check AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)"
-      eb init continuous-deployment-demo -p "64bit Amazon Linux 2017.09 v2.6.4 running Java 8" --region "ca-central-1"
+      eb init continuous-deployment-demo -p "corretto-17" --region "ca-central-1"
       eb create azuredevops-env --single || true;
       eb use azuredevops-env
       eb setenv SERVER_PORT=5000

@@ -27,7 +27,7 @@ node {
     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY']]) {
       // Prepare environment by creating and prepare environments
       stage('Prepare environment') {
-        sh 'eb init continuous-deployment-demo -p "64bit Amazon Linux 2017.09 v2.6.4 running Java 8" --region "ca-central-1" '
+        sh 'eb init continuous-deployment-demo -p "corretto-17" --region "ca-central-1" '
         // Since AWS failed on create if environment already exists, try/catch block allow to continue deploy without failing
         try {
           sh 'eb create jenkins-env --single'
