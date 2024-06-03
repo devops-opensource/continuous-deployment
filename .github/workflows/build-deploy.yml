@@ -24,7 +24,7 @@ jobs:
         run: mvn package --file pom.xml -Dmaven.repo.local=.m2
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: continuous-deployment-demo
           path: target/demo-1.0.jar
@@ -36,10 +36,9 @@ jobs:
     if: success()
     steps:
       - name: Download Build Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: continuous-deployment-demo
-          path: target/demo-1.0.jar
 
       - name: Setup AWS CLI
         uses: aws-actions/configure-aws-credentials@v1
@@ -50,8 +49,6 @@ jobs:
 
       - name: Install Elastic Beanstalk CLI
         run: pip install awsebcli
-
-
 
       - name: Deploy to Elastic Beanstalk
         env:
@@ -66,7 +63,7 @@ jobs:
           eb status
           eb health
 
-        
+      
       - name: Fetch Logs on Failure
         if: failure()
         run: |
